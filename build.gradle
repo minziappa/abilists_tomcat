@@ -1,0 +1,83 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+// OpenJava 1.8
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+buildscript {
+	repositories { 
+		mavenCentral()
+		maven {
+			url "https://plugins.gradle.org/m2/"
+		}
+	}
+}
+
+version = '0.0.1'
+
+jar {
+	manifest {
+		attributes 'Implementation-Title': 'Abilists', 'Implementation-Version': version
+	}
+	// Include source with jar
+	from sourceSets.main.allSource
+}
+
+repositories {
+	mavenLocal()
+    mavenCentral()
+}
+
+// For provided jars
+configurations {
+	provided
+}
+
+ext {
+	logbackVersion = '1.1.3'
+}
+
+dependencies {
+	compile 'org.slf4j:slf4j-api:1.7.12'
+	runtime 'org.slf4j:jcl-over-slf4j:1.7.12'
+	compile 'ch.qos.logback:logback-core:1.1.3'
+	compile 'ch.qos.logback:logback-classic:1.1.3'
+
+	compile 'org.apache.tomcat:tomcat-servlet-api:8.5.42'
+	compile 'org.apache.tomcat:tomcat-catalina:8.5.42'
+}
+
+// $ gradle install
+configure(install.repositories.mavenInstaller) {
+    pom.project {
+		group = 'com.abilists'
+		artifactId 'abilists_tomcat'
+        inceptionYear '2019'
+        packaging 'jar'
+        licenses {
+            license {
+                name 'Eclipse Public License (Version 1.0)'
+                url 'http://www.eclipse.org/legal/epl-v10.html'
+                distribution 'repo'
+            }
+        }
+    }
+}
+
+task buildJar << {
+	copy {
+		from "build/libs/abilists_tomcat-" + version + ".jar"
+		into "/usr/local/tomcat/lib"
+		include '**/*.jar'
+	}
+}
+
+// $ gradle buildJar
+buildJar.dependsOn(install)
+
+// $ gradle wrapper
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.3'
+}
